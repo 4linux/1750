@@ -53,8 +53,8 @@ Nesse laboratório, que está centralizado no arquivo [Vagrantfile][7], sera cri
 
 Nome       | vCPUs | Memoria RAM | IP            | S.O.¹           
 ---------- |:-----:|:-----------:|:-------------:|:---------------:
-manager     | 1     | 3072MB | 172.16.0.100 | centos-7.3-x86_64
-worker01      | 1     | 1536MB | 172.16.0.101 | centos-7.3-x86_64
+manager     | 1     | 3072MB | 172.16.0.100 | ubuntu-18.04-amd64
+worker01      | 1     | 1536MB | 172.16.0.101 | ubuntu-18.04-amd64
 worker02      | 1     | 1536MB | 172.16.0.102 | ubuntu-18.04-amd64
 registry      | 1     | 1024MB | 172.16.0.103 | ubuntu-18.04-amd64 
 
