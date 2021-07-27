@@ -1,0 +1,120 @@
+---
+- hosts: all
+  become: yes
+  become_user: root
+  become_method: sudo
+  tasks:
+    - name: Garantindo o arquivo /etc/hosts
+      lineinfile:
+        path: /etc/hosts
+        line: "{{ item }}"
+      with_items:
+        - 172.16.100.101 security.dexter.com.br security
+        - 172.16.100.102 storage.dexter.com.br storage
+        - 172.16.100.103 log-server.dexter.com.br log-server
+        - 172.16.100.104 workstation.dexter.com.br workstation
+        
+    - name: Ajustando .bashrc do usuario vagrant
+      lineinfile:
+        path: /home/vagrant/.bashrc
+        line: 'sudo su - suporte'
+        
+    - name: Instalando pacotes
+      apt:
+        name: ['unzip', 'wget', 'elinks', 'rsync', 'net-tools', 'libapache2-mod-gnutls', 'apache2', 'vim', 'tree', 'man', 'nano', 'git', 'ifupdown']
+
+    - name: Atualizar senha do root
+      user:
+        name: root
+        update_password: always
+        password: $6$hmmmsalt$/YtRD6ys9fmR92Gzwjj8uZW7VM8OeEE5EGCGuzBVdsIBwy2Hqx4Q6RBzQZl1Z26nQbHk7NtLPXP8jJSq6WeQQ0
+
+    - name: Adicionar usuario suporte
+      user:
+        name: suporte
+        shell: /bin/bash
+        password: "{{ '4linux' | password_hash('sha512') }}"
+
+    - name: Criando o arquivo 98_4linux
+      copy:
+        src: files/98_4linux
+        dest: /etc/sudoers.d
+        mode: 0644
+
+    - name: Definir permissao de acesso da HOME do usuario suporte
+      file:
+        path: /home/suporte
+        owner: suporte
+        group: suporte
+        state: directory
+        recurse: yes
+        mode: 0755
+
+    - name: Criando diretorio pacotes
+      synchronize:
+        src: files/pacotes
+        dest: /opt
+
+    - name: Criando o arquivo dhcpd.conf
+      copy:
+        src: files/dhcpd.conf
+        dest: /opt
+        mode: 0644
+
+    - name: Alterando arquivo /etc/ssh/sshd_config
+      lineinfile:
+        path: /etc/ssh/sshd_config
+        line: PermitRootLogin yes
+        state: present
+
+    - name: Desativando systemd-networkd.socket 
+      systemd:
+        name: systemd-networkd.socket
+        enabled: no
+        masked: yes
+
+    - name: Desativando systemd-networkd
+      systemd:
+        name: systemd-networkd
+        enabled: no
+        masked: yes
+
+    - name: Desativando networkd-dispatcher
+      systemd:
+        name: networkd-dispatcher
+        enabled: no
+        masked: yes
+
+    - name: Desativando systemd-networkd-wait-online
+      systemd:
+        name: systemd-networkd-wait-online
+        enabled: no
+        masked: yes
+
+    - name: Instalando pacotes de dependencias
+      apt:
+        name: ['nplan', 'netplan.io']
+        purge: yes
+
+    - name: Garantindo /etc/network/interfaces
+      lineinfile:
+        path: /etc/network/interfaces
+        line: "{{ item }}"
+      with_items:
+        - auto lo
+        - iface lo inet loopback
+        - auto eth0
+        - iface eth0 inet dhcp
+        - auto eth1
+        - iface eth1 inet static
+        - address 172.16.100.101
+        - netmask 255.255.255.0
+        - auto eth2
+        - iface eth2 inet static
+        - address 192.168.200.11
+        - netmask 255.255.255.0
+
+    - name: Reinicia a VM
+      shell: "sleep 5 && reboot"
+      async: 1
+      poll: 0

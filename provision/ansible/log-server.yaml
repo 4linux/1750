@@ -1,0 +1,52 @@
+---
+- hosts: all
+  become: yes
+  become_user: root
+  become_method: sudo
+  tasks:
+    - name: Garantindo /etc/hosts
+      lineinfile:
+        path: /etc/hosts
+        line: "{{ item }}"
+      with_items:
+        - 172.16.100.101 security.dexter.com.br security
+        - 172.16.100.102 storage.dexter.com.br storage
+        - 172.16.100.103 log-server.dexter.com.br log-server
+        - 172.16.100.104 workstation.dexter.com.br workstation
+        
+    - name: Ajustando .bashrc do usuário vagrant
+      lineinfile:
+        path: /home/vagrant/.bashrc
+        line: 'sudo su - suporte'
+        
+    - name: Instalando pacotes de dependencias
+      apt:
+        name: ['unzip', 'wget', 'elinks', 'rsync', 'vim', 'psmisc', 'lsof']
+
+    - name: Adicionar usuário suporte
+      user:
+        name: suporte
+        shell: /bin/bash
+        password : $1$QbUARykG$p2nthVG8AkDvabKPHwboa1
+
+    - name: Criando o arquivo 98_4linux
+      copy:
+        src: files/98_4linux
+        dest: /etc/sudoers.d
+        mode: 0644
+
+    - name: Definir permissão de acesso da HOME do usuario suporte
+      file:
+        path: /home/suporte
+        owner: suporte
+        group: suporte
+        state: directory
+        recurse: yes
+        mode: 0755
+
+    - name: Criando o arquivo web_backup_system.sh
+      copy:
+        src: files/web_backup_system.sh
+        dest: /opt
+        mode: 0755
+

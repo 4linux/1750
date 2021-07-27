@@ -1,0 +1,12 @@
+[Unit]
+Description=Pasta /srv
+Requires=tmp.mount
+After=tmp.mount
+
+[Mount]
+What=/dev/sdb1
+Where=/srv
+Type=ext4
+
+[Install]
+WantedBy=multi-user.target

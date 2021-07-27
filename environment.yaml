@@ -1,0 +1,36 @@
+---
+- name: security
+  box: trombik/ansible-ubuntu-18.04-amd64
+  hostname: security
+  ipaddress1: 172.16.100.101
+  ipaddress2: 192.168.200.11
+  memory: 512
+  cpus: 1
+  provision: provision/ansible/security.yaml
+
+- name: storage
+  box: trombik/ansible-centos-7.3-x86_64
+  hostname: storage
+  ipaddress1: 172.16.100.102
+  ipaddress2: 192.168.200.12
+  memory: 1024
+  cpus: 1
+  provision: provision/ansible/storage.yaml
+
+- name: log-server
+  box: trombik/ansible-ubuntu-18.04-amd64
+  hostname: log-server
+  ipaddress1: 172.16.100.103
+  ipaddress2: 192.168.200.13
+  memory: 1024
+  cpus: 1
+  provision: provision/ansible/log-server.yaml
+
+- name: workstation
+  box: trombik/ansible-ubuntu-18.04-amd64
+  hostname: workstation
+  ipaddress1: 172.16.100.104
+  ipaddress2: 192.168.200.14
+  memory: 3072
+  cpus: 1
+  provision: provision/ansible/workstation.yaml

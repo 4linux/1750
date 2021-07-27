@@ -1,0 +1,166 @@
+---
+- hosts: all
+  become: yes
+  become_user: root
+  become_method: sudo
+  tasks:
+    - name: Garantindo o arquivo /etc/hosts
+      lineinfile:
+        path: /etc/hosts
+        line: "{{ item }}"
+      with_items:
+        - 172.16.100.101 security.dexter.com.br security
+        - 172.16.100.102 storage.dexter.com.br storage
+        - 172.16.100.103 log-server.dexter.com.br log-server
+        - 172.16.100.104 workstation.dexter.com.br workstation
+
+    - name: Instalando pacotes base
+      apt:
+        name: ['unzip', 'wget', 'elinks', 'rsync', 'gnome-session', 'ifupdown', 'vim', 'net-tools', 'python-apt']
+
+    - name: Atualizar senha do root
+      user:
+        name: root
+        update_password: always
+        password: $6$hmmmsalt$/YtRD6ys9fmR92Gzwjj8uZW7VM8OeEE5EGCGuzBVdsIBwy2Hqx4Q6RBzQZl1Z26nQbHk7NtLPXP8jJSq6WeQQ0
+
+    - name: Adicionar usuario suporte
+      user:
+        name: suporte
+        shell: /bin/bash
+        password : $1$QbUARykG$p2nthVG8AkDvabKPHwboa1
+
+    - name: Criando o arquivo 98_4linux
+      copy:
+        src: files/98_4linux
+        dest: /etc/sudoers.d
+        mode: 0644
+
+    - name: Instala pacotes que permitem que o apt seja usado sobre HTTPS
+      apt:
+        name: "{{ packages }}"
+        state: present
+        update_cache: yes
+      vars:
+        packages:
+        - apt-transport-https
+        - ca-certificates
+        - curl
+        - gnupg-agent
+        - software-properties-common
+        - nfs-common
+        - vim
+
+    - name: Adiciona uma chave de assinatura apt para o Docker
+      apt_key:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        state: present
+
+    - name: Adiciona repositorio apt para versao estavel
+      apt_repository:
+        repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu bionic stable
+        state: present
+
+    - name: Instala o Docker e suas dependencias
+      apt:
+        name: "{{ packages }}"
+        state: present
+        update_cache: yes
+      vars:
+        packages:
+        - docker-ce
+        - docker-ce-cli
+        - containerd.io
+
+    - name: Iniciando o Docker
+      systemd:
+        name: docker
+        state: started
+        enabled: yes
+
+    - name: Adiciona o usuario suporte no grupo docker
+      user:
+        name: suporte
+        group: docker
+
+    - name: Criando o arquivo Vagrantfile
+      copy:
+        src: files/Vagrantfile
+        dest: /opt
+        mode: 0644
+
+    - name: Criando o arquivo Dockerfile
+      copy:
+        src: files/Dockerfile
+        dest: /opt
+        mode: 0644
+
+    - name: Cria imagem docker ubuntu-ssh
+      command: docker image build -t ubuntu-ssh /opt
+      become: yes
+
+    - name: Cria a rede dexterlan no Docker
+      command: docker network create --driver bridge --subnet 172.18.0.0/16 dexterlan
+      become: yes
+
+    - name: Instalando Desktop
+      apt:
+        name: ['lubuntu-desktop']
+
+    - name: Desativando systemd-networkd.socket 
+      systemd:
+        name: systemd-networkd.socket
+        enabled: no
+        masked: yes
+
+    - name: Desativando systemd-networkd
+      systemd:
+        name: systemd-networkd
+        enabled: no
+        masked: yes
+
+    - name: Desativando networkd-dispatcher
+      systemd:
+        name: networkd-dispatcher
+        enabled: no
+        masked: yes
+
+    - name: Desativando systemd-networkd-wait-online
+      systemd:
+        name: systemd-networkd-wait-online
+        enabled: no
+        masked: yes
+
+    - name: Removendo o Netplan
+      apt:
+        name: ['nplan', 'netplan.io']
+        purge: yes
+
+    - name: Garantindo o arquivo /etc/network/interfaces
+      lineinfile:
+        path: /etc/network/interfaces
+        line: "{{ item }}"
+      with_items:
+        - auto lo
+        - iface lo inet loopback
+        - auto eth0
+        - iface eth0 inet dhcp
+        - auto eth1
+        - iface eth1 inet static
+        - address 172.16.100.104
+        - netmask 255.255.255.0
+        - auto eth2
+        - iface eth2 inet static
+        - address 192.168.200.14
+        - netmask 255.255.255.0
+
+    - name: Alterando arquivo /etc/ssh/sshd_config
+      lineinfile:
+        path: /etc/ssh/sshd_config
+        line: PermitRootLogin yes
+        state: present
+
+    - name: Reinicia a VM
+      shell: "sleep 5 && reboot"
+      async: 1
+      poll: 0
