@@ -1,7 +1,7 @@
-Laboratório 4540 - Administração de Containers - DCA
+Laboratório 1750 - Administrando Ambientes Escaláveis com Linux, Docker e Kubernetes
 =============================
 
-Repositório para armazenar o Laboratório do curso de Administração de Containers - DCA da [4Linux][1]
+Repositório para armazenar o Laboratório do curso de Administrando Ambientes Escaláveis com Linux, Docker e Kubernetes da [4Linux][1]
 
 Dependências
 ------------
@@ -16,12 +16,40 @@ Para a criação do laboratório é necessário ter pré instalado os seguintes 
 
 > Para as máquinas com MAC OS aconselhamos, se possível, que as instalações sejam feitas pelo gerenciador de pacotes **brew**.
 
-Laboratório
+Laboratório Linux
 -----------
 
 O Laboratório será criado utilizando o [Vagrant][6]. Ferramenta para criar e gerenciar ambientes virtualizados (baseado em Inúmeros providers) com foco em automação.
 
-Nesse laboratório, que está centralizado no arquivo [Vagrantfile][7], sera criada 1 maquina com a seguinte característica:
+Nesse laboratório, que está centralizado no arquivo [Vagrantfile][7], sera criada 4 maquinas para o conteúdo de Linux com as seguintes características:
+
+Nome       | vCPUs | Memoria RAM | IP            | S.O.¹           
+---------- |:-----:|:-----------:|:-------------:|:---------------:
+security     | 1     | 512MB | 172.16.100.101 | ubuntu-18.04-amd64
+storage      | 1     | 1024MB | 172.16.100.102 | centos-7.3-x86_64
+log-server      | 1     | 1024MB | 172.16.100.103 | ubuntu-18.04-amd64
+workstation      | 1     | 3072MB | 172.16.100.104 | ubuntu-18.04-amd64 
+
+> **¹**: Esses Sistemas operacionais estão sendo utilizado no formato de Boxes, é a forma como o vagrant chama as imagens do sistema operacional utilizado.
+
+Criação do Laboratório 
+----------------------
+
+Para criar o laboratório é necessário fazer o `git clone` desse repositório e, dentro da pasta baixada realizar a execução do `vagrant up`, conforme abaixo:
+
+```bash
+git clone https://github.com/4linux/1750
+cd 1750/
+vagrant up
+```
+
+Laboratório Docker/Kubernetes
+-----------
+
+O Laboratório será criado utilizando o [Vagrant][6]. Ferramenta para criar e gerenciar ambientes virtualizados (baseado em Inúmeros providers) com foco em automação.
+
+Nesse laboratório, que está centralizado no arquivo [Vagrantfile][7], sera criada 4 maquinas para o conteúdo de Docker e Kubernetes com as seguintes características:
+
 
 Nome       | vCPUs | Memoria RAM | IP            | S.O.¹           
 ---------- |:-----:|:-----------:|:-------------:|:---------------:
@@ -38,8 +66,8 @@ Criação do Laboratório
 Para criar o laboratório é necessário fazer o `git clone` desse repositório e, dentro da pasta baixada realizar a execução do `vagrant up`, conforme abaixo:
 
 ```bash
-git clone https://github.com/4linux/4540
-cd 4540/
+git clone https://github.com/4linux/1750
+cd 1750/docker-kubernetes
 vagrant up
 ```
 
